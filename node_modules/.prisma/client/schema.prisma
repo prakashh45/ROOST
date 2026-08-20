@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model amenities {
+  id                 BigInt               @id @default(autoincrement())
+  tenant_id          BigInt
+  name               String               @db.VarChar(100)
+  description        String?
+  created_at         DateTime             @default(now()) @db.Timestamp(6)
+  updated_at         DateTime             @default(now()) @db.Timestamp(6)
+  tenants            tenants              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_amenities_tenant")
+  property_amenities property_amenities[]
+  room_amenities     room_amenities[]
+
+  @@unique([tenant_id, id], map: "uq_amenities_tenant_id")
+  @@unique([tenant_id, name], map: "uq_amenities_tenant_name")
+  @@index([tenant_id], map: "idx_amenities_tenant_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model beds {
+  id                                               BigInt     @id @default(autoincrement())
+  tenant_id                                        BigInt
+  room_id                                          BigInt
+  bed_code                                         String     @db.VarChar(50)
+  position                                         String?    @db.VarChar(50)
+  price_override                                   Decimal?   @db.Decimal(12, 2)
+  status                                           String     @default("AVAILABLE") @db.VarChar(30)
+  created_at                                       DateTime   @default(now()) @db.Timestamp(6)
+  updated_at                                       DateTime   @default(now()) @db.Timestamp(6)
+  rooms_beds_room_idTorooms                        rooms      @relation("beds_room_idTorooms", fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_beds_room")
+  tenants                                          tenants    @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_beds_tenant")
+  rooms_beds_tenant_id_room_idTorooms              rooms      @relation("beds_tenant_id_room_idTorooms", fields: [tenant_id, room_id], references: [tenant_id, id], onDelete: NoAction, onUpdate: NoAction, map: "fk_beds_tenant_room")
+  bookings_bookings_bed_idTobeds                   bookings[] @relation("bookings_bed_idTobeds")
+  bookings_bookings_tenant_id_room_id_bed_idTobeds bookings[] @relation("bookings_tenant_id_room_id_bed_idTobeds")
+
+  @@unique([room_id, bed_code], map: "uq_beds_room_code")
+  @@unique([tenant_id, room_id, id], map: "uq_beds_tenant_room_id")
+  @@index([room_id], map: "idx_beds_room_id")
+  @@index([status], map: "idx_beds_status")
+  @@index([tenant_id], map: "idx_beds_tenant_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model bookings {
+  id                                                    BigInt     @id @default(autoincrement())
+  booking_code                                          String     @unique @db.VarChar(50)
+  tenant_id                                             BigInt
+  guest_id                                              BigInt
+  property_id                                           BigInt
+  room_id                                               BigInt
+  bed_id                                                BigInt
+  check_in                                              DateTime   @db.Date
+  check_out                                             DateTime   @db.Date
+  guest_name                                            String     @db.VarChar(255)
+  guest_phone                                           String?    @db.VarChar(30)
+  guest_email                                           String?    @db.VarChar(255)
+  source                                                String     @default("WEB") @db.VarChar(30)
+  status                                                String     @default("PENDING") @db.VarChar(30)
+  rejection_reason                                      String?
+  total_amount                                          Decimal    @db.Decimal(12, 2)
+  created_at                                            DateTime   @default(now()) @db.Timestamp(6)
+  updated_at                                            DateTime   @default(now()) @db.Timestamp(6)
+  beds_bookings_bed_idTobeds                            beds       @relation("bookings_bed_idTobeds", fields: [bed_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_bed")
+  users                                                 users      @relation(fields: [guest_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_guest")
+  properties_bookings_property_idToproperties           properties @relation("bookings_property_idToproperties", fields: [property_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_property")
+  rooms_bookings_room_idTorooms                         rooms      @relation("bookings_room_idTorooms", fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_room")
+  tenants                                               tenants    @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_tenant")
+  properties_bookings_tenant_id_property_idToproperties properties @relation("bookings_tenant_id_property_idToproperties", fields: [tenant_id, property_id], references: [tenant_id, id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_tenant_property")
+  rooms_bookings_tenant_id_property_id_room_idTorooms   rooms      @relation("bookings_tenant_id_property_id_room_idTorooms", fields: [tenant_id, property_id, room_id], references: [tenant_id, property_id, id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_tenant_property_room")
+  beds_bookings_tenant_id_room_id_bed_idTobeds          beds       @relation("bookings_tenant_id_room_id_bed_idTobeds", fields: [tenant_id, room_id, bed_id], references: [tenant_id, room_id, id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bookings_tenant_room_bed")
+
+  @@index([bed_id, check_in, check_out], map: "idx_bookings_bed_dates")
+  @@index([bed_id], map: "idx_bookings_bed_id")
+  @@index([guest_id], map: "idx_bookings_guest_id")
+  @@index([property_id], map: "idx_bookings_property_id")
+  @@index([room_id], map: "idx_bookings_room_id")
+  @@index([status], map: "idx_bookings_status")
+  @@index([tenant_id], map: "idx_bookings_tenant_id")
+}
+
+model flyway_schema_history {
+  installed_rank Int      @id(map: "flyway_schema_history_pk")
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(6)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model properties {
+  id                                                  BigInt               @id @default(autoincrement())
+  tenant_id                                           BigInt
+  name                                                String               @db.VarChar(255)
+  slug                                                String               @db.VarChar(150)
+  description                                         String?
+  address                                             String?
+  city                                                String?              @db.VarChar(100)
+  state                                               String?              @db.VarChar(100)
+  postal_code                                         String?              @db.VarChar(20)
+  latitude                                            Decimal?             @db.Decimal(10, 7)
+  longitude                                           Decimal?             @db.Decimal(10, 7)
+  status                                              String               @default("DRAFT") @db.VarChar(30)
+  created_at                                          DateTime             @default(now()) @db.Timestamp(6)
+  updated_at                                          DateTime             @default(now()) @db.Timestamp(6)
+  bookings_bookings_property_idToproperties           bookings[]           @relation("bookings_property_idToproperties")
+  bookings_bookings_tenant_id_property_idToproperties bookings[]           @relation("bookings_tenant_id_property_idToproperties")
+  tenants                                             tenants              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_properties_tenant")
+  property_amenities                                  property_amenities[]
+  rooms_rooms_property_idToproperties                 rooms[]              @relation("rooms_property_idToproperties")
+  rooms_rooms_tenant_id_property_idToproperties       rooms[]              @relation("rooms_tenant_id_property_idToproperties")
+
+  @@unique([tenant_id, id], map: "uq_properties_tenant_id")
+  @@unique([tenant_id, slug], map: "uq_properties_tenant_slug")
+  @@index([city], map: "idx_properties_city")
+  @@index([tenant_id], map: "idx_properties_tenant_id")
+}
+
+model property_amenities {
+  tenant_id   BigInt
+  property_id BigInt
+  amenity_id  BigInt
+  created_at  DateTime   @default(now()) @db.Timestamp(6)
+  amenities   amenities  @relation(fields: [tenant_id, amenity_id], references: [tenant_id, id], onDelete: Cascade, onUpdate: NoAction, map: "fk_property_amenities_amenity")
+  properties  properties @relation(fields: [tenant_id, property_id], references: [tenant_id, id], onDelete: Cascade, onUpdate: NoAction, map: "fk_property_amenities_property")
+
+  @@id([property_id, amenity_id], map: "pk_property_amenities")
+  @@index([amenity_id], map: "idx_property_amenities_amenity_id")
+  @@index([tenant_id], map: "idx_property_amenities_tenant_id")
+}
+
+model room_amenities {
+  tenant_id  BigInt
+  room_id    BigInt
+  amenity_id BigInt
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  amenities  amenities @relation(fields: [tenant_id, amenity_id], references: [tenant_id, id], onDelete: Cascade, onUpdate: NoAction, map: "fk_room_amenities_amenity")
+  rooms      rooms     @relation(fields: [tenant_id, room_id], references: [tenant_id, id], onDelete: Cascade, onUpdate: NoAction, map: "fk_room_amenities_room")
+
+  @@id([room_id, amenity_id], map: "pk_room_amenities")
+  @@index([amenity_id], map: "idx_room_amenities_amenity_id")
+  @@index([tenant_id], map: "idx_room_amenities_tenant_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model rooms {
+  id                                                     BigInt           @id @default(autoincrement())
+  tenant_id                                              BigInt
+  property_id                                            BigInt
+  room_number                                            String           @db.VarChar(50)
+  floor                                                  Int?
+  gender_policy                                          String           @default("MIXED") @db.VarChar(30)
+  has_ac                                                 Boolean          @default(false)
+  has_attached_bathroom                                  Boolean          @default(false)
+  base_price                                             Decimal          @db.Decimal(12, 2)
+  status                                                 String           @default("ACTIVE") @db.VarChar(30)
+  created_at                                             DateTime         @default(now()) @db.Timestamp(6)
+  updated_at                                             DateTime         @default(now()) @db.Timestamp(6)
+  beds_beds_room_idTorooms                               beds[]           @relation("beds_room_idTorooms")
+  beds_beds_tenant_id_room_idTorooms                     beds[]           @relation("beds_tenant_id_room_idTorooms")
+  bookings_bookings_room_idTorooms                       bookings[]       @relation("bookings_room_idTorooms")
+  bookings_bookings_tenant_id_property_id_room_idTorooms bookings[]       @relation("bookings_tenant_id_property_id_room_idTorooms")
+  room_amenities                                         room_amenities[]
+  properties_rooms_property_idToproperties               properties       @relation("rooms_property_idToproperties", fields: [property_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rooms_property")
+  tenants                                                tenants          @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rooms_tenant")
+  properties_rooms_tenant_id_property_idToproperties     properties       @relation("rooms_tenant_id_property_idToproperties", fields: [tenant_id, property_id], references: [tenant_id, id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rooms_tenant_property")
+
+  @@unique([property_id, room_number], map: "uq_rooms_property_number")
+  @@unique([tenant_id, id], map: "uq_rooms_tenant_id")
+  @@unique([tenant_id, property_id, id], map: "uq_rooms_tenant_property_id")
+  @@index([property_id], map: "idx_rooms_property_id")
+  @@index([tenant_id], map: "idx_rooms_tenant_id")
+}
+
+model tenants {
+  id              BigInt       @id @default(autoincrement())
+  legal_name      String       @db.VarChar(255)
+  display_name    String       @db.VarChar(255)
+  slug            String       @unique @db.VarChar(100)
+  whatsapp_number String?      @db.VarChar(20)
+  timezone        String       @default("Asia/Kolkata") @db.VarChar(50)
+  currency        String       @default("INR") @db.VarChar(10)
+  created_at      DateTime     @default(now()) @db.Timestamp(6)
+  updated_at      DateTime     @default(now()) @db.Timestamp(6)
+  amenities       amenities[]
+  beds            beds[]
+  bookings        bookings[]
+  properties      properties[]
+  rooms           rooms[]
+  users           users[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id         BigInt     @id @default(autoincrement())
+  tenant_id  BigInt?
+  name       String     @db.VarChar(255)
+  email      String     @unique @db.VarChar(255)
+  phone      String?    @db.VarChar(20)
+  role       String     @db.VarChar(30)
+  status     String     @default("ACTIVE") @db.VarChar(30)
+  created_at DateTime   @default(now()) @db.Timestamp(6)
+  updated_at DateTime   @default(now()) @db.Timestamp(6)
+  bookings   bookings[]
+  tenants    tenants?   @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_tenant")
+
+  @@index([role], map: "idx_users_role")
+  @@index([tenant_id], map: "idx_users_tenant_id")
+}
