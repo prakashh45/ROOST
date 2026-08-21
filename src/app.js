@@ -18,5 +18,8 @@ app.get("/", (req, res) => {
         message: "ROOST Backend is running"
     });
 });
+app.get("/api/v1/health", (req, res) => {
+    res.json({ status: "ok" });
+});
 
 module.exports = app;
