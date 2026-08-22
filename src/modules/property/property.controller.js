@@ -46,8 +46,53 @@ const getPropertyAvailability = async (req, res) => {
         });
     }
 };
+const createProperty = async (req, res, next) => {
+    try {
+        const {
+            tenantId,
+            name,
+            slug,
+            description,
+            address,
+            city,
+            state,
+            postalCode,
+            latitude,
+            longitude,
+        } = req.body;
+
+        if (!tenantId || !name || !slug) {
+            return res.status(400).json({
+                success: false,
+                message: "tenantId, name and slug are required",
+            });
+        }
+
+        const property = await propertyService.createProperty({
+            tenantId,
+            name,
+            slug,
+            description,
+            address,
+            city,
+            state,
+            postalCode,
+            latitude,
+            longitude,
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Property created successfully",
+            data: property,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     getPropertyBySlug,
     getPropertyAvailability,
+       createProperty,
 };

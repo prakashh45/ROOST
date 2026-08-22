@@ -121,7 +121,70 @@ const getPropertyAvailability = async (slug, checkIn, checkOut) => {
     };
 };
 
+
+const createProperty = async ({
+    tenantId,
+    name,
+    slug,
+    description,
+    address,
+    city,
+    state,
+    postalCode,
+    latitude,
+    longitude,
+}) => {
+
+    const existingProperty = await prisma.properties.findFirst({
+        where: {
+            tenant_id: BigInt(tenantId),
+            slug,
+        },
+    });
+
+    if (existingProperty) {
+        const error = new Error(
+            "Property with this slug already exists"
+        );
+        error.status = 409;
+        error.code = "PROPERTY_SLUG_EXISTS";
+        throw error;
+    }
+
+    const property = await prisma.properties.create({
+        data: {
+            tenant_id: BigInt(tenantId),
+            name,
+            slug,
+            description,
+            address,
+            city,
+            state,
+            postal_code: postalCode,
+            latitude,
+            longitude,
+            status: "DRAFT",
+        },
+    });
+
+    return {
+        id: property.id.toString(),
+        tenantId: property.tenant_id.toString(),
+        name: property.name,
+        slug: property.slug,
+        description: property.description,
+        address: property.address,
+        city: property.city,
+        state: property.state,
+        postalCode: property.postal_code,
+        latitude: property.latitude?.toString() ?? null,
+        longitude: property.longitude?.toString() ?? null,
+        status: property.status,
+    };
+};
+
 module.exports = {
     getPropertyBySlug,
     getPropertyAvailability,
+    createProperty,
 };

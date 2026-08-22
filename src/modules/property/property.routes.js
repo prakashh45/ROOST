@@ -14,4 +14,6 @@ router.get(
     propertyController.getPropertyBySlug
 );
 
+router.post("/", propertyController.createProperty);
+
 module.exports = router;
