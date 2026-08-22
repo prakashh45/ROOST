@@ -1,10 +1,14 @@
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
 const prisma = require("../../config/db");
 
 const register = async ({ name, email, phone, password, role }) => {
+
     const existingUser = await prisma.users.findUnique({
-        where: { email },
+        where: {
+            email
+        }
     });
 
     if (existingUser) {
@@ -19,9 +23,9 @@ const register = async ({ name, email, phone, password, role }) => {
             email,
             phone,
             password_hash: passwordHash,
-            role: role || "TENANT",
-            status: "ACTIVE",
-        },
+            role,
+            status: "ACTIVE"
+        }
     });
 
     return {
@@ -29,54 +33,58 @@ const register = async ({ name, email, phone, password, role }) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
-        status: user.status,
+        role: user.role
     };
 };
 
+
 const login = async ({ email, password }) => {
+
     const user = await prisma.users.findUnique({
-        where: { email },
+        where: {
+            email
+        }
     });
 
     if (!user) {
         throw new Error("Invalid email or password");
     }
 
-    const passwordMatch = await bcrypt.compare(
+    const isPasswordValid = await bcrypt.compare(
         password,
         user.password_hash
     );
 
-    if (!passwordMatch) {
+    if (!isPasswordValid) {
         throw new Error("Invalid email or password");
     }
 
     const token = jwt.sign(
         {
             userId: user.id.toString(),
-            role: user.role,
+            email: user.email,
+            role: user.role
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: "1d",
+            expiresIn: "1d"
         }
     );
 
     return {
-        token,
         user: {
             id: user.id.toString(),
             name: user.name,
             email: user.email,
             phone: user.phone,
-            role: user.role,
-            status: user.status,
+            role: user.role
         },
+        token
     };
 };
 
+
 module.exports = {
     register,
-    login,
+    login
 };

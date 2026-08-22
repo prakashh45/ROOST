@@ -4,17 +4,17 @@ const register = async (req, res) => {
     try {
         const user = await authService.register(req.body);
 
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
             message: "User registered successfully",
-            data: user,
+            data: user
         });
     } catch (error) {
         console.error("Register error:", error);
 
-        return res.status(400).json({
+        res.status(400).json({
             success: false,
-            message: error.message,
+            message: error.message
         });
     }
 };
@@ -23,22 +23,22 @@ const login = async (req, res) => {
     try {
         const result = await authService.login(req.body);
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Login successful",
-            data: result,
+            data: result
         });
     } catch (error) {
         console.error("Login error:", error);
 
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
-            message: error.message,
+            message: error.message
         });
     }
 };
 
 module.exports = {
     register,
-    login,
+    login
 };
