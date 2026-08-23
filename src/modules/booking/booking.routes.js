@@ -4,14 +4,28 @@ const bookingController = require("./booking.controller");
 
 const router = express.Router();
 
-router.post("/", bookingController.createBooking);
+router.post(
+    "/",
+    bookingController.createBooking
+);
 
-router.get("/test", (req, res) => {
-    res.status(200).json({
-        message: "Booking route is working"
-    });
-});
+router.get(
+    "/test",
+    (req, res) => {
+        res.status(200).json({
+            message: "Booking route is working"
+        });
+    }
+);
 
-router.get("/:code", bookingController.getBookingByCode);
+router.patch(
+    "/:code/cancel",
+    bookingController.cancelBooking
+);
+
+router.get(
+    "/:code",
+    bookingController.getBookingByCode
+);
 
 module.exports = router;

@@ -290,8 +290,79 @@ const getBookingByCode = async (code) => {
     };
 };
 
+const cancelBooking = async (code, reason) => {
+
+    const booking = await prisma.bookings.findUnique({
+        where: {
+            booking_code: code,
+        },
+    });
+
+    if (!booking) {
+        const error = new Error("Booking not found");
+        error.status = 404;
+        error.code = "NOT_FOUND";
+        throw error;
+    }
+
+    if (
+        booking.status === "CANCELLED"
+    ) {
+        const error = new Error(
+            "Booking is already cancelled"
+        );
+
+        error.status = 409;
+        error.code = "ALREADY_CANCELLED";
+
+        throw error;
+    }
+
+    if (
+        booking.status !== "PENDING" &&
+        booking.status !== "CONFIRMED"
+    ) {
+        const error = new Error(
+            "Booking cannot be cancelled"
+        );
+
+        error.status = 409;
+        error.code = "INVALID_BOOKING_STATUS";
+
+        throw error;
+    }
+
+    const updatedBooking =
+        await prisma.bookings.update({
+            where: {
+                booking_code: code,
+            },
+
+            data: {
+                status: "CANCELLED",
+                rejection_reason: reason || null,
+            },
+        });
+
+    return {
+        id: updatedBooking.id.toString(),
+
+        bookingCode:
+            updatedBooking.booking_code,
+
+        status:
+            updatedBooking.status,
+
+        rejectionReason:
+            updatedBooking.rejection_reason,
+
+        updatedAt:
+            updatedBooking.updated_at,
+    };
+};
 
 module.exports = {
     createBooking,
     getBookingByCode,
+    cancelBooking,
 };

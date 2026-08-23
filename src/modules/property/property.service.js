@@ -183,8 +183,82 @@ const createProperty = async ({
     };
 };
 
+
+const searchProperties = async ({
+    city,
+    state,
+    search,
+}) => {
+
+    const where = {
+        status: "PUBLISHED",
+    };
+
+    if (city) {
+        where.city = {
+            contains: city,
+            mode: "insensitive",
+        };
+    }
+
+    if (state) {
+        where.state = {
+            contains: state,
+            mode: "insensitive",
+        };
+    }
+
+    if (search) {
+        where.OR = [
+            {
+                name: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+            {
+                city: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+        ];
+    }
+
+    const properties = await prisma.properties.findMany({
+        where,
+        orderBy: {
+            created_at: "desc",
+        },
+    });
+
+    return properties.map((property) => ({
+        id: property.id.toString(),
+        tenantId: property.tenant_id.toString(),
+
+        name: property.name,
+        slug: property.slug,
+
+        description: property.description,
+        address: property.address,
+
+        city: property.city,
+        state: property.state,
+        postalCode: property.postal_code,
+
+        latitude: property.latitude?.toString() ?? null,
+        longitude: property.longitude?.toString() ?? null,
+
+        status: property.status,
+
+        createdAt: property.created_at,
+        updatedAt: property.updated_at,
+    }));
+};
+
 module.exports = {
     getPropertyBySlug,
     getPropertyAvailability,
     createProperty,
+    searchProperties,
 };

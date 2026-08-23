@@ -27,8 +27,28 @@ const getBookingByCode = async (req, res, next) => {
         next(error);
     }
 };
+const cancelBooking = async (req, res, next) => {
+    try {
+        const { code } = req.params;
+        const { reason } = req.body;
 
+        const booking =
+            await bookingService.cancelBooking(
+                code,
+                reason
+            );
+
+        res.status(200).json({
+            success: true,
+            message: "Booking cancelled successfully",
+            data: booking,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 module.exports = {
     createBooking,
     getBookingByCode,
+    cancelBooking,
 };

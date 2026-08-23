@@ -91,8 +91,28 @@ const createProperty = async (req, res, next) => {
     }
 };
 
+const searchProperties = async (req, res, next) => {
+    try {
+        const { city, state, search } = req.query;
+
+        const properties =
+            await propertyService.searchProperties({
+                city,
+                state,
+                search,
+            });
+
+        res.status(200).json({
+            data: properties,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getPropertyBySlug,
     getPropertyAvailability,
-       createProperty,
+    createProperty,
+    searchProperties,
 };

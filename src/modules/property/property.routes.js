@@ -7,6 +7,11 @@ const roomController = require("../room/room.controller");
 const router = express.Router();
 
 router.get(
+    "/",
+    propertyController.searchProperties
+);
+
+router.get(
     "/:slug/availability",
     propertyController.getPropertyAvailability
 );
@@ -19,6 +24,11 @@ router.get(
 router.post(
     "/:propertyId/rooms",
     roomController.createRoom
+);
+
+router.post(
+    "/",
+    propertyController.createProperty
 );
 
 router.post("/", propertyController.createProperty);
