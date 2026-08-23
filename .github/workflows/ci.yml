@@ -25,15 +25,7 @@ jobs:
             echo "Resetting to match origin/main exactly..."
             git reset --hard origin/main
 
-            echo "Installing dependencies..."
-            npm ci
-
-            echo "Generating Prisma client..."
-            npx prisma generate
-
-            echo "Restarting backend..."
-            pm2 restart roost-backend --update-env
-
+          
             echo "Checking backend..."
             sleep 3
             curl -f http://localhost:5000
