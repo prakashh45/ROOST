@@ -25,7 +25,7 @@ jobs:
             echo "Resetting to match origin/main exactly..."
             git reset --hard origin/main
 
-          
+            
             echo "Checking backend..."
             sleep 3
             curl -f http://localhost:5000
