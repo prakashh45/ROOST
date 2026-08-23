@@ -12,15 +12,15 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies and build
+      - name: Install dependencies
         run: |
           npm ci
 
@@ -31,21 +31,26 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/roost-backend
-            
-            # Pull latest changes
+            set -e
+
+            cd /home/ec2-user/ROOST
+
+            echo "Pulling latest changes..."
             git pull origin main
-            
-            # Install dependencies cleanly
+
+            echo "Installing dependencies..."
             npm ci
-            
-            # Run database migrations
-            npx prisma migrate deploy
-            
-            # Generate Prisma Client
+
+            echo "Generating Prisma Client..."
             npx prisma generate
-            
-            # Reload PM2 application smoothly without downtime
+
+            echo "Running database migrations..."
+            npx prisma migrate deploy
+
+            echo "Reloading PM2..."
             pm2 reload ecosystem.config.js --env production
-            
+
+            echo "Checking PM2 status..."
+            pm2 status
+
             echo "Deployment completed successfully!"
