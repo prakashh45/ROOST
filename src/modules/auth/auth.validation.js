@@ -1,36 +1,26 @@
-const VALID_ROLES = ["GUEST", "OWNER", "STAFF", "PLATFORM_ADMIN"];
+/* ─────────────────────────────────────────────────────────────────────────
+   src/modules/auth/auth.validation.js
+   Zod schemas for auth endpoints
+───────────────────────────────────────────────────────────────────────── */
+const { z } = require("zod");
 
-const register = async ({ name, email, phone, password, role }) => {
-    const finalRole = role || "GUEST";
+const registerSchema = z.object({
+    name:     z.string().min(2).max(255),
+    email:    z.string().email(),
+    phone:    z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number").optional(),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    role:     z.enum(["GUEST", "OWNER", "STAFF"]).default("GUEST"),
+    tenantId: z.union([z.string(), z.number()]).optional(),
+});
 
-    if (!VALID_ROLES.includes(finalRole)) {
-        throw new Error(`Invalid role. Must be one of: ${VALID_ROLES.join(", ")}`);
-    }
+const loginSchema = z.object({
+    email:    z.string().email(),
+    password: z.string().min(1),
+});
 
-    const existingUser = await prisma.users.findUnique({ where: { email } });
-    if (existingUser) {
-        throw new Error("User with this email already exists");
-    }
+const changePasswordSchema = z.object({
+    oldPassword: z.string().min(1),
+    newPassword: z.string().min(6),
+});
 
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const user = await prisma.users.create({
-        data: {
-            name,
-            email,
-            phone,
-            password_hash: passwordHash,
-            role: finalRole,
-            status: "ACTIVE",
-        },
-    });
-
-    return {
-        id: user.id.toString(),
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        status: user.status,
-    };
-};
+module.exports = { registerSchema, loginSchema, changePasswordSchema };

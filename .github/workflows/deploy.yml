@@ -1,0 +1,51 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy API to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies and build
+        run: |
+          npm ci
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/roost-backend
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Install dependencies cleanly
+            npm ci
+            
+            # Run database migrations
+            npx prisma migrate deploy
+            
+            # Generate Prisma Client
+            npx prisma generate
+            
+            # Reload PM2 application smoothly without downtime
+            pm2 reload ecosystem.config.js --env production
+            
+            echo "Deployment completed successfully!"

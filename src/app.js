@@ -1,25 +1,38 @@
-const express = require("express");
+/* ─────────────────────────────────────────────────────────────────────────
+   src/app.js — Express application bootstrap
+───────────────────────────────────────────────────────────────────────── */
+const express       = require("express");
+const routes        = require("./routes");
+const errorHandler  = require("./middleware/errorHandler");
+const requestLogger = require("./middleware/requestLogger");
 
-const routes = require("./routes");
+// Fix BigInt JSON serialization globally
+BigInt.prototype.toJSON = function () { return this.toString(); };
 
 const app = express();
 
-app.use(express.json());
+/* ── Global Middleware ── */
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-// Handle PostgreSQL BIGINT values in JSON responses
-BigInt.prototype.toJSON = function () {
-    return this.toString();
-};
+// Trust proxy headers when behind ALB
+app.set("trust proxy", 1);
 
+app.use(requestLogger);
+
+/* ── Health check (ALB target group) ── */
+app.get("/", (_req, res) => res.json({ success: true, message: "ROOST Backend is running", version: "1.0.0" }));
+app.get("/api/v1/health", (_req, res) => res.json({ success: true, status: "ok", ts: new Date().toISOString() }));
+
+/* ── API Routes ── */
 app.use("/api/v1", routes);
 
-app.get("/", (req, res) => {
-    res.json({
-        message: "ROOST Backend is running"
-    });
+/* ── 404 catch-all ── */
+app.use((_req, res) => {
+    res.status(404).json({ success: false, code: "NOT_FOUND", message: "Route not found" });
 });
-app.get("/api/v1/health", (req, res) => {
-    res.json({ status: "ok" });
-});
+
+/* ── Central Error Handler (must be last) ── */
+app.use(errorHandler);
 
 module.exports = app;

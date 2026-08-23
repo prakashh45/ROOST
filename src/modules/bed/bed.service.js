@@ -1,70 +1,73 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   src/modules/bed/bed.service.js
+───────────────────────────────────────────────────────────────────────── */
 const prisma = require("../../config/db");
 
-const createBed = async ({
-    tenantId,
-    roomId,
-    bedCode,
-    position,
-    priceOverride,
-}) => {
+const formatBed = (b) => ({
+    id:            b.id.toString(),
+    tenantId:      b.tenant_id.toString(),
+    roomId:        b.room_id.toString(),
+    bedCode:       b.bed_code,
+    position:      b.position || null,
+    priceOverride: b.price_override ? b.price_override.toString() : null,
+    status:        b.status,
+    createdAt:     b.created_at,
+    updatedAt:     b.updated_at,
+});
 
-    // Check room
+const createBed = async ({ tenantId, roomId, bedCode, position, priceOverride }) => {
     const room = await prisma.rooms.findFirst({
-        where: {
-            id: BigInt(roomId),
-            tenant_id: BigInt(tenantId),
-        },
+        where: { id: BigInt(roomId), tenant_id: BigInt(tenantId) },
     });
-
     if (!room) {
-        const error = new Error("Room not found");
-        error.status = 404;
-        error.code = "ROOM_NOT_FOUND";
-        throw error;
+        const err = new Error("Room not found or unauthorized"); err.status = 404; err.code = "NOT_FOUND"; throw err;
     }
 
-    // Check duplicate bed
-    const existingBed = await prisma.beds.findFirst({
-        where: {
-            room_id: BigInt(roomId),
-            bed_code: bedCode,
-        },
-    });
-
-    if (existingBed) {
-        const error = new Error("Bed code already exists in this room");
-        error.status = 409;
-        error.code = "BED_ALREADY_EXISTS";
-        throw error;
+    const existing = await prisma.beds.findFirst({ where: { room_id: BigInt(roomId), bed_code: bedCode } });
+    if (existing) {
+        const err = new Error("Bed code already exists in this room"); err.status = 409; err.code = "BED_CODE_EXISTS"; throw err;
     }
 
     const bed = await prisma.beds.create({
         data: {
-            tenant_id: BigInt(tenantId),
-            room_id: BigInt(roomId),
-            bed_code: bedCode,
-            position: position || null,
-            price_override:
-                priceOverride !== undefined && priceOverride !== null
-                    ? priceOverride
-                    : null,
-            status: "AVAILABLE",
+            tenant_id:      BigInt(tenantId),
+            room_id:        BigInt(roomId),
+            bed_code:       bedCode,
+            position:       position || null,
+            price_override: priceOverride != null ? priceOverride : null,
+            status:         "AVAILABLE",
         },
     });
 
-    return {
-        id: bed.id.toString(),
-        tenantId: bed.tenant_id.toString(),
-        roomId: bed.room_id.toString(),
-        bedCode: bed.bed_code,
-        position: bed.position,
-        priceOverride: bed.price_override
-            ? bed.price_override.toString()
-            : null,
-        status: bed.status,
-    };
+    return formatBed(bed);
 };
 
-module.exports = {
-    createBed,
+const getBedsByRoom = async (roomId, tenantId) => {
+    const beds = await prisma.beds.findMany({
+        where:   { room_id: BigInt(roomId), tenant_id: BigInt(tenantId) },
+        orderBy: { bed_code: "asc" },
+    });
+    return beds.map(formatBed);
 };
+
+const updateBed = async (bedId, tenantId, data) => {
+    const existing = await prisma.beds.findFirst({ where: { id: BigInt(bedId), tenant_id: BigInt(tenantId) } });
+    if (!existing) {
+        const err = new Error("Bed not found or unauthorized"); err.status = 404; err.code = "NOT_FOUND"; throw err;
+    }
+
+    const bed = await prisma.beds.update({
+        where: { id: BigInt(bedId) },
+        data: {
+            bed_code:       data.bedCode,
+            position:       data.position,
+            price_override: data.priceOverride,
+            status:         data.status,
+            updated_at:     new Date(),
+        },
+    });
+
+    return formatBed(bed);
+};
+
+module.exports = { createBed, getBedsByRoom, updateBed };
