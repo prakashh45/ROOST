@@ -41,6 +41,21 @@ const updateProperty = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+const getMyProperties = async (req, res, next) => {
+    try {
+        const tenantId = req.user.tenantId;
+
+        const data = await svc.getMyProperties(tenantId);
+
+        res.status(200).json({
+            success: true,
+            data,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 const updatePropertyStatus = async (req, res, next) => {
     try {
         const { tenantId, status } = req.body;
@@ -56,4 +71,5 @@ module.exports = {
     createProperty,
     updateProperty,
     updatePropertyStatus,
+    getMyProperties,
 };

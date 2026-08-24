@@ -50,7 +50,25 @@ const searchProperties = async ({ city, state, search, page = 1, limit = 20 }) =
         pagination: { page: pageNum, limit: pageSize, total, totalPages: Math.ceil(total / pageSize) },
     };
 };
+const getMyProperties = async (tenantId) => {
+    if (!tenantId) {
+        const err = new Error("Owner tenant is not assigned");
+        err.status = 400;
+        err.code = "TENANT_REQUIRED";
+        throw err;
+    }
 
+    const properties = await prisma.properties.findMany({
+        where: {
+            tenant_id: BigInt(tenantId),
+        },
+        orderBy: {
+            created_at: "desc",
+        },
+    });
+
+    return properties.map(formatProperty);
+};
 /* ── GET /properties/:slug ── */
 const getPropertyBySlug = async (slug) => {
     const property = await prisma.properties.findFirst({
@@ -237,6 +255,7 @@ const updatePropertyStatus = async (propertyId, tenantId, status) => {
 
 module.exports = {
     searchProperties,
+    getMyProperties,
     getPropertyBySlug,
     getPropertyAvailability,
     createProperty,
