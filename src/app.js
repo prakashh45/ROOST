@@ -1,6 +1,7 @@
 /* ─────────────────────────────────────────────────────────────────────────
    src/app.js — Express application bootstrap
 ───────────────────────────────────────────────────────────────────────── */
+const cors = require("cors");
 const express       = require("express");
 const routes        = require("./routes");
 const errorHandler  = require("./middleware/errorHandler");
@@ -8,6 +9,7 @@ const requestLogger = require("./middleware/requestLogger");
 
 // Fix BigInt JSON serialization globally
 BigInt.prototype.toJSON = function () { return this.toString(); };
+const cors = require("cors");
 
 const app = express();
 
