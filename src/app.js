@@ -31,3 +31,17 @@ app.use(express.urlencoded({ extended: true }));
 app.set("trust proxy", 1);
 
 app.use(requestLogger);
+
+/* ── 404 catch-all ── */
+app.use((_req, res) => {
+    res.status(404).json({
+        success: false,
+        code: "NOT_FOUND",
+        message: "Route not found"
+    });
+});
+
+/* ── Central Error Handler ── */
+app.use(errorHandler);
+
+module.exports = app;
