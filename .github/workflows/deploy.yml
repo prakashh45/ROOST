@@ -21,8 +21,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -52,5 +51,11 @@ jobs:
 
             echo "Checking PM2 status..."
             pm2 status
+
+            echo "Waiting for API..."
+            sleep 5
+
+            echo "Testing health endpoint..."
+            curl -f http://localhost:5000/api/v1/health
 
             echo "Deployment completed successfully!"
