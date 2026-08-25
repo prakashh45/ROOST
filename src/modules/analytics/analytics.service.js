@@ -1,27 +1,109 @@
-const analyticsService = require("./analytics.service");
+/* ─────────────────────────────────────────────────────────────────────────
+   src/modules/analytics/analytics.service.js
+   Owner dashboard analytics
+───────────────────────────────────────────────────────────────────────── */
 
-const ownerSummary = async (req, res, next) => {
-  try {
-    const tenantId = req.user.tenantId;
+const prisma = require("../../config/db");
 
-    if (!tenantId) {
-      const err = new Error("User is not associated with a tenant");
-      err.status = 400;
-      err.code = "TENANT_REQUIRED";
-      throw err;
-    }
+const getOwnerSummary = async (tenantId) => {
+  const tenant = BigInt(tenantId);
 
-    const data = await analyticsService.getOwnerSummary(tenantId);
+  // Properties
+  const propertiesCount = await prisma.properties.count({
+    where: {
+      tenant_id: tenant,
+    },
+  });
 
-    res.status(200).json({
-      success: true,
-      data,
-    });
-  } catch (err) {
-    next(err);
-  }
+  // Rooms
+  const roomsCount = await prisma.rooms.count({
+    where: {
+      tenant_id: tenant,
+    },
+  });
+
+  // Beds
+  const bedsCount = await prisma.beds.count({
+    where: {
+      tenant_id: tenant,
+    },
+  });
+
+  // Active bookings
+  const activeBookings = await prisma.bookings.count({
+    where: {
+      tenant_id: tenant,
+      status: "CONFIRMED",
+    },
+  });
+
+  // Total bookings
+  const totalBookings = await prisma.bookings.count({
+    where: {
+      tenant_id: tenant,
+    },
+  });
+
+  // Occupied beds
+  const occupiedBeds = await prisma.bookings.count({
+    where: {
+      tenant_id: tenant,
+      status: "CONFIRMED",
+    },
+  });
+
+  const occupancy =
+    bedsCount > 0
+      ? Math.round((occupiedBeds / bedsCount) * 100)
+      : 0;
+
+  return {
+    stats: [
+      {
+        label: "Properties",
+        value: propertiesCount,
+      },
+      {
+        label: "Rooms",
+        value: roomsCount,
+      },
+      {
+        label: "Beds",
+        value: bedsCount,
+      },
+      {
+        label: "Active bookings",
+        value: activeBookings,
+      },
+    ],
+
+    occupancy: [
+      occupancy,
+      occupancy,
+      occupancy,
+      occupancy,
+      occupancy,
+      occupancy,
+      occupancy,
+    ],
+
+    occupancyLabels: [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Today",
+    ],
+
+    bookings: {
+      total: totalBookings,
+      active: activeBookings,
+    },
+  };
 };
-
+// add 
 module.exports = {
-  ownerSummary,
+  getOwnerSummary,
 };
