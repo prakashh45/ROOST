@@ -198,23 +198,11 @@ const updatePropertyStatus = async (req, res, next) => {
     }
 };
 
-
 const deleteProperty = async (req, res, next) => {
     try {
-        const tenantId = req.user?.tenantId;
+        const { tenantId } = req.body;
 
-        if (!tenantId) {
-            const err = new Error(
-                "User is not associated with a tenant"
-            );
-
-            err.status = 400;
-            err.code = "TENANT_REQUIRED";
-
-            throw err;
-        }
-
-        await svc.deleteProperty(
+        const data = await svc.deleteProperty(
             req.params.propertyId,
             tenantId
         );
@@ -222,6 +210,7 @@ const deleteProperty = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: "Property deleted",
+            data,
         });
     } catch (err) {
         next(err);

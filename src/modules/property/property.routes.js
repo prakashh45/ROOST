@@ -85,13 +85,6 @@ router.patch(
   validate(updatePropertyStatusSchema),
   ctrl.updatePropertyStatus
 );
-// DELETE /api/v1/properties/:propertyId
-router.delete(
-  "/:propertyId",
-  authenticate,
-  requireRole("OWNER", "STAFF"),
-  ctrl.deleteProperty
-);
 
 /* ─────────────────────────────────────────────
    ROOMS
@@ -104,6 +97,14 @@ router.get(
   requireRole("OWNER", "STAFF"),
   roomCtrl.getRoomsByProperty
 );
+// DELETE /api/v1/properties/:propertyId
+router.delete(
+  "/:propertyId",
+  authenticate,
+  requireRole("OWNER", "STAFF"),
+  ctrl.deleteProperty
+);
+
 
 // POST /api/v1/properties/:propertyId/rooms
 router.post(
