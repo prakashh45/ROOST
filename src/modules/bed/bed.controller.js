@@ -21,7 +21,7 @@ const getBedsByRoom = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-cconst updateBed = async (req, res, next) => {
+const updateBed = async (req, res, next) => {
     try {
         const { bedId } = req.params;
         const { tenantId, ...rest } = req.body;
