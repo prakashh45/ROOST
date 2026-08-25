@@ -1,19 +1,31 @@
-const express = require("express");
+/* ─────────────────────────────────────────────────────────────────────────
+   src/modules/analytics/analytics.controller.js
+───────────────────────────────────────────────────────────────────────── */
 
-const ctrl = require("./analytics.controller");
+const analyticsService = require("./analytics.service");
 
-const {
-  authenticate,
-  requireRole,
-} = require("../../middleware/auth");
+const ownerSummary = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
 
-const router = express.Router();
+    if (!tenantId) {
+      const err = new Error("User is not associated with a tenant");
+      err.status = 400;
+      err.code = "TENANT_REQUIRED";
+      throw err;
+    }
 
-router.get(
-  "/owner-summary",
-  authenticate,
-  requireRole("OWNER", "STAFF"),
-  ctrl.ownerSummary
-);
+    const data = await analyticsService.getOwnerSummary(tenantId);
 
-module.exports = router;
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  ownerSummary,
+};  

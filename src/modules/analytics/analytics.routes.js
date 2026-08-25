@@ -9,6 +9,10 @@ const {
 
 const router = express.Router();
 
+/**
+ * GET /api/v1/analytics/owner-summary
+ * OWNER / STAFF only
+ */
 router.get(
   "/owner-summary",
   authenticate,
