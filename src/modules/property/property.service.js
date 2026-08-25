@@ -242,16 +242,34 @@ const updateProperty = async (propertyId, tenantId, data) => {
 };
 
 /* ── PATCH /properties/:propertyId/status ── */
-const updatePropertyStatus = async (propertyId, tenantId, status) => {
-    const existing = await prisma.properties.findFirst({ where: { id: BigInt(propertyId), tenant_id: BigInt(tenantId) } });
-    if (!existing) { const err = new Error("Property not found"); err.status = 404; err.code = "NOT_FOUND"; throw err; }
-
-    const property = await prisma.properties.update({
-        where: { id: BigInt(propertyId) },
-        data:  { status, updated_at: new Date() },
+/* ── DELETE /properties/:propertyId ── */
+const deleteProperty = async (propertyId, tenantId) => {
+    const existing = await prisma.properties.findFirst({
+        where: {
+            id: BigInt(propertyId),
+            tenant_id: BigInt(tenantId),
+        },
     });
-    return { id: property.id.toString(), tenantId: property.tenant_id.toString(), status: property.status };
+
+    if (!existing) {
+        const err = new Error("Property not found");
+        err.status = 404;
+        err.code = "NOT_FOUND";
+        throw err;
+    }
+
+    await prisma.properties.delete({
+        where: {
+            id: BigInt(propertyId),
+        },
+    });
+
+    return {
+        id: existing.id.toString(),
+        tenantId: existing.tenant_id.toString(),
+    };
 };
+
 
 module.exports = {
     searchProperties,
@@ -261,4 +279,5 @@ module.exports = {
     createProperty,
     updateProperty,
     updatePropertyStatus,
+    deleteProperty,
 };

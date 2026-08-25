@@ -198,9 +198,17 @@ const updatePropertyStatus = async (req, res, next) => {
     }
 };
 
+
 const deleteProperty = async (req, res, next) => {
     try {
-        const { tenantId } = req.body;
+        const tenantId = req.user.tenantId;
+
+        if (!tenantId) {
+            const err = new Error("Tenant is required");
+            err.status = 400;
+            err.code = "TENANT_REQUIRED";
+            throw err;
+        }
 
         const data = await svc.deleteProperty(
             req.params.propertyId,
