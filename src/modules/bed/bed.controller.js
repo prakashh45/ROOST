@@ -21,13 +21,25 @@ const getBedsByRoom = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-const updateBed = async (req, res, next) => {
+cconst updateBed = async (req, res, next) => {
     try {
-        const { bedId }          = req.params;
+        const { bedId } = req.params;
         const { tenantId, ...rest } = req.body;
-        const bed = await svc.updateBed(bedId, tenantId, rest);
-        res.status(200).json({ success: true, message: "Bed updated", data: bed });
-    } catch (err) { next(err); }
+
+        const bed = await svc.updateBed(
+            bedId,
+            tenantId,
+            rest
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Bed updated",
+            data: bed,
+        });
+    } catch (err) {
+        next(err);
+    }
 };
 
 module.exports = { createBed, getBedsByRoom, updateBed };
