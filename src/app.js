@@ -9,11 +9,10 @@ BigInt.prototype.toJSON = function () {
 };
 
 const app = express();
-
 app.use(cors({
   origin: [
-    "http://localhost:5173",
-    "http://13.51.13.251"
+    'https://roost-frontend-psi.vercel.app',
+    'http://localhost:5173' // local dev ke liye
   ],
   credentials: true
 }));
