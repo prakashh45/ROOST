@@ -50,24 +50,35 @@ const getBedsByRoom = async (roomId, tenantId) => {
     return beds.map(formatBed);
 };
 
-const updateBed = async (bedId, tenantId, data) => {
-    const existing = await prisma.beds.findFirst({ where: { id: BigInt(bedId), tenant_id: BigInt(tenantId) } });
-    if (!existing) {
-        const err = new Error("Bed not found or unauthorized"); err.status = 404; err.code = "NOT_FOUND"; throw err;
+const updateBed = async (req, res, next) => {
+    try {
+        const { bedId } = req.params;
+        const { tenantId, ...rest } = req.body;
+
+        console.log("========== UPDATE BED ==========");
+        console.log("bedId:", bedId);
+        console.log("tenantId:", tenantId);
+        console.log("body:", req.body);
+        console.log("rest:", rest);
+
+        const bed = await svc.updateBed(bedId, tenantId, rest);
+
+        console.log("UPDATED BED:", bed);
+
+        res.status(200).json({
+            success: true,
+            message: "Bed updated",
+            data: bed,
+        });
+    } catch (err) {
+        console.error("========== UPDATE BED ERROR ==========");
+        console.error(err);
+        console.error("message:", err.message);
+        console.error("code:", err.code);
+        console.error("meta:", err.meta);
+
+        next(err);
     }
-
-    const bed = await prisma.beds.update({
-        where: { id: BigInt(bedId) },
-        data: {
-            bed_code:       data.bedCode,
-            position:       data.position,
-            price_override: data.priceOverride,
-            status:         data.status,
-            updated_at:     new Date(),
-        },
-    });
-
-    return formatBed(bed);
 };
 
 module.exports = { createBed, getBedsByRoom, updateBed };
