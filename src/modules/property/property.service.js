@@ -242,6 +242,32 @@ const updateProperty = async (propertyId, tenantId, data) => {
 };
 
 /* ── PATCH /properties/:propertyId/status ── */
+const updatePropertyStatus = async (propertyId, tenantId, status) => {
+    const existing = await prisma.properties.findFirst({
+        where: {
+            id: BigInt(propertyId),
+            tenant_id: BigInt(tenantId),
+        },
+    });
+
+    if (!existing) {
+        const err = new Error("Property not found");
+        err.status = 404;
+        err.code = "NOT_FOUND";
+        throw err;
+    }
+
+    const updated = await prisma.properties.update({
+        where: {
+            id: BigInt(propertyId),
+        },
+        data: {
+            status,
+        },
+    });
+
+    return formatProperty(updated);
+};
 /* ── DELETE /properties/:propertyId ── */
 const deleteProperty = async (propertyId, tenantId) => {
     const existing = await prisma.properties.findFirst({
