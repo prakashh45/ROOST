@@ -85,7 +85,13 @@ router.patch(
   validate(updatePropertyStatusSchema),
   ctrl.updatePropertyStatus
 );
-
+// DELETE /api/v1/properties/:propertyId
+router.delete(
+  "/:propertyId",
+  authenticate,
+  requireRole("OWNER", "STAFF"),
+  ctrl.deleteProperty
+);
 
 /* ─────────────────────────────────────────────
    ROOMS
