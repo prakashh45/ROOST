@@ -303,7 +303,7 @@ module.exports = {
     getPropertyBySlug,
     getPropertyAvailability,
     createProperty,
-    updateProperty,S
+    updateProperty,
     updatePropertyStatus,
     deleteProperty,
 };
