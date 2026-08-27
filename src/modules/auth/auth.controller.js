@@ -31,4 +31,39 @@ const changePassword = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { register, login, getProfile, changePassword };
+
+const adminRegister = async (req, res, next) => {
+    try {
+        const result = await authService.adminRegister(req.body);
+
+        res.status(201).json({
+            success: true,
+            message: "Admin registered successfully",
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const adminLogin = async (req, res, next) => {
+    try {
+        const result = await authService.adminLogin(req.body);
+
+        res.status(200).json({
+            success: true,
+            message: "Admin login successful",
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+module.exports = {
+    register,
+    login,
+    adminRegister,
+    adminLogin,
+    getProfile,
+    changePassword,
+};
