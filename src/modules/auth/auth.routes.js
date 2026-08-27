@@ -1,5 +1,14 @@
 /* ─────────────────────────────────────────────────────────────────────────
    src/modules/auth/auth.routes.js
+
+   POST /api/v1/auth/register
+   POST /api/v1/auth/login
+
+   GET  /api/v1/auth/me
+   POST /api/v1/auth/change-password
+
+   POST /api/v1/auth/admin/register
+   POST /api/v1/auth/admin/login
 ───────────────────────────────────────────────────────────────────────── */
 
 const express = require("express");
@@ -15,20 +24,63 @@ const {
     changePasswordSchema,
 } = require("./auth.validation");
 
-router.post("/register",         validate(registerSchema),       controller.register);
-router.post("/login",            validate(loginSchema),          controller.login);
-router.get( "/me",               authenticate,                   controller.getProfile);
-router.post("/change-password",  authenticate, validate(changePasswordSchema), controller.changePassword);
+const router = express.Router();
+
+/* ─────────────────────────────────────────────────────────────────────────
+   GENERAL AUTH
+───────────────────────────────────────────────────────────────────────── */
+
+/* Register Guest / Owner / Staff */
+router.post(
+    "/register",
+    validate(registerSchema),
+    controller.register
+);
+
+/* Login Guest / Owner / Staff */
+router.post(
+    "/login",
+    validate(loginSchema),
+    controller.login
+);
+
+/* ─────────────────────────────────────────────────────────────────────────
+   PROTECTED AUTH
+───────────────────────────────────────────────────────────────────────── */
+
+/* Current logged-in user */
+router.get(
+    "/me",
+    authenticate,
+    controller.getProfile
+);
+
+/* Change password */
+router.post(
+    "/change-password",
+    authenticate,
+    validate(changePasswordSchema),
+    controller.changePassword
+);
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ADMIN AUTH
+───────────────────────────────────────────────────────────────────────── */
+
+/* Admin Register */
 router.post(
     "/admin/register",
     validate(adminRegisterSchema),
     controller.adminRegister
 );
 
+/* Admin Login */
 router.post(
     "/admin/login",
     validate(adminLoginSchema),
     controller.adminLogin
 );
+
+/* ───────────────────────────────────────────────────────────────────────── */
 
 module.exports = router;
