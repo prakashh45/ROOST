@@ -12,7 +12,11 @@ const createBookingSchema = z.object({
     checkIn:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format"),
     checkOut:   z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format"),
     guestName:  z.string().min(2).max(255),
-    guestPhone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number").optional(),
+
+    guestPhone: z
+        .string()
+        .regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number"),
+
     guestEmail: z.string().email().optional(),
     source:     z.enum(["WEB", "WALK_IN", "PHONE"]).default("WEB"),
 });
