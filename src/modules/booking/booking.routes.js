@@ -15,6 +15,9 @@ const { createBookingSchema, rejectBookingSchema, cancelBookingSchema } = requir
 
 const router = express.Router();
 
+/* Owner literal routes must come before parameter routes */
+router.get( "/owner",                    authenticate, requireRole("OWNER","STAFF","PLATFORM_ADMIN"), ctrl.listOwnerBookings);
+
 /* Guest routes */
 router.post("/",                         validate(createBookingSchema),  ctrl.createBooking);
 router.get( "/:code",                                                    ctrl.getBookingByCode);
@@ -23,6 +26,7 @@ router.patch("/:code/cancel",            validate(cancelBookingSchema),  ctrl.ca
 /* Owner routes */
 router.get( "/",                         authenticate, requireRole("OWNER","STAFF","PLATFORM_ADMIN"), ctrl.listOwnerBookings);
 router.patch("/:code/confirm",           authenticate, requireRole("OWNER","STAFF"),                  ctrl.confirmBooking);
+router.patch("/:code/approve",           authenticate, requireRole("OWNER","STAFF"),                  ctrl.confirmBooking);
 router.patch("/:code/reject",            authenticate, requireRole("OWNER","STAFF"), validate(rejectBookingSchema), ctrl.rejectBooking);
 
 module.exports = router;
