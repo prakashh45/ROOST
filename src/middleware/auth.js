@@ -4,8 +4,9 @@
    Decodes Bearer token and attaches req.user = { userId, email, role, tenantId }
 ───────────────────────────────────────────────────────────────────────── */
 const jwt = require("jsonwebtoken");
+const prisma = require("../config/db");
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
@@ -19,15 +20,27 @@ const authenticate = (req, res, next) => {
         const token   = authHeader.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+        const user = await prisma.users.findUnique({
+            where: { id: BigInt(decoded.userId) },
+            select: { id: true, email: true, role: true, tenant_id: true, status: true },
+        });
+        if (!user || user.status !== "ACTIVE") {
+            const err = new Error("Account is inactive");
+            err.status = 401;
+            err.code = "ACCOUNT_INACTIVE";
+            return next(err);
+        }
+
         req.user = {
-            userId:   decoded.userId,
-            email:    decoded.email,
-            role:     decoded.role,
-            tenantId: decoded.tenantId || null,
+            userId: user.id.toString(),
+            email: user.email,
+            role: user.role,
+            tenantId: user.tenant_id ? user.tenant_id.toString() : null,
         };
 
         next();
     } catch (error) {
+        if (error.status) return next(error);
         const err    = new Error("Invalid or expired token");
         err.status   = 401;
         err.code     = "TOKEN_INVALID";

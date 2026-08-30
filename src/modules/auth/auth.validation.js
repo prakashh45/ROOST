@@ -21,10 +21,6 @@ const registerSchema = z.object({
 
     password: z.string().min(6, "Password must be at least 6 characters"),
 
-    role: z
-        .enum(["GUEST", "OWNER", "STAFF"])
-        .default("GUEST"),
-
     tenantId: z.union([z.string(), z.number()]).optional(),
 });
 

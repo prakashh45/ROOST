@@ -1,0 +1,15 @@
+const express = require("express");
+const controller = require("./reception.controller");
+const validate = require("../../middleware/validate");
+const { authenticate } = require("../../middleware/auth");
+const { requirePermission } = require("../../common/rbac");
+const { registerGuestSchema, createBookingSchema } = require("./reception.validation");
+const router = express.Router();
+router.use(authenticate);
+router.post("/guests", requirePermission("guests:write"), validate(registerGuestSchema), controller.registerGuest);
+router.get("/guests", requirePermission("guests:read"), controller.searchGuests);
+router.get("/properties/:propertyId/availability", requirePermission("reception:operate"), controller.availability);
+router.post("/bookings", requirePermission("reception:operate"), validate(createBookingSchema), controller.createBooking);
+router.patch("/bookings/:bookingCode/check-in", requirePermission("reception:operate"), controller.checkIn);
+router.patch("/bookings/:bookingCode/check-out", requirePermission("reception:operate"), controller.checkOut);
+module.exports = router;

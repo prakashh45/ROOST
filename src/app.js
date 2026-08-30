@@ -24,6 +24,25 @@ app.set("trust proxy", 1);
 
 app.use(requestLogger);
 
+// Service information. These routes make it easy to confirm that the server is
+// reachable without needing to know a feature-specific API endpoint.
+app.get("/", (_req, res) => {
+  res.json({
+    success: true,
+    message: "ROOST API is running",
+    health: "/api/v1/health",
+    basePath: "/api/v1"
+  });
+});
+
+app.get("/api/v1", (_req, res) => {
+  res.json({
+    success: true,
+    message: "ROOST API is running",
+    health: "/api/v1/health"
+  });
+});
+
 // Health
 app.get("/api/v1/health", (_req, res) => {
   res.json({
@@ -49,4 +68,3 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 module.exports = app;
-

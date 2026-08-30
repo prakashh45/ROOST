@@ -67,7 +67,6 @@ const register = async ({
     email,
     phone,
     password,
-    role,
     tenantId,
 }) => {
     const existing = await prisma.users.findUnique({
@@ -95,8 +94,7 @@ const register = async ({
             phone: phone || null,
             password_hash: passwordHash,
 
-            // Default role
-            role: role || "GUEST",
+            role: "GUEST",
 
             status: "ACTIVE",
 
@@ -183,6 +181,16 @@ const adminRegister = async ({
     phone,
     password,
 }) => {
+    const adminAlreadyExists = await prisma.users.findFirst({
+        where: { role: ADMIN_ROLE },
+        select: { id: true },
+    });
+    if (adminAlreadyExists) {
+        const err = new Error("Platform admin creation is restricted to authenticated platform administration");
+        err.status = 403;
+        err.code = "ADMIN_BOOTSTRAP_COMPLETE";
+        throw err;
+    }
     const existing = await prisma.users.findUnique({
         where: {
             email,
