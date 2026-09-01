@@ -32,20 +32,6 @@ const changePassword = async (req, res, next) => {
 };
 
 
-const adminRegister = async (req, res, next) => {
-    try {
-        const result = await authService.adminRegister(req.body);
-
-        res.status(201).json({
-            success: true,
-            message: "Admin registered successfully",
-            data: result,
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
 const adminLogin = async (req, res, next) => {
     try {
         const result = await authService.adminLogin(req.body);
@@ -59,11 +45,30 @@ const adminLogin = async (req, res, next) => {
         next(err);
     }
 };
+
+const updateProfile = async (req, res, next) => {
+    try {
+        const roostSvc = require("../roost/roost.service");
+        const result = await roostSvc.updateProfile(req.user.userId, req.body);
+        res.status(200).json({ success: true, data: result });
+    } catch (err) { next(err); }
+};
+
+const forgotPassword = async (req, res, next) => {
+    try {
+        const roostSvc = require("../roost/roost.service");
+        const emailOrPhone = req.body.email || req.body.phone || req.body.emailOrPhone;
+        const result = await roostSvc.forgotPassword(emailOrPhone);
+        res.status(200).json({ success: true, data: result });
+    } catch (err) { next(err); }
+};
+
 module.exports = {
     register,
     login,
-    adminRegister,
     adminLogin,
     getProfile,
     changePassword,
+    updateProfile,
+    forgotPassword,
 };

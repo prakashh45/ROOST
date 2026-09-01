@@ -1,70 +1,38 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   src/modules/auth/auth.validation.js
-   Zod schemas for auth endpoints
-───────────────────────────────────────────────────────────────────────── */
-
 const { z } = require("zod");
 
-/* ── Public Register ── */
 const registerSchema = z.object({
-    name: z.string().min(2).max(255),
-
-    email: z.string().email(),
-
-    phone: z
-        .string()
-        .regex(
-            /^[6-9]\d{9}$/,
-            "Must be a valid 10-digit Indian mobile number"
-        )
-        .optional(),
-
-    password: z.string().min(6, "Password must be at least 6 characters"),
-
-    tenantId: z.union([z.string(), z.number()]).optional(),
+  name: z.string().trim().min(2).max(255),
+  email: z.string().trim().email(),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number").optional(),
+  password: z.string().min(12, "Password must be at least 12 characters"),
+  tenantId: z.union([z.string().regex(/^\d+$/), z.number().int().positive()]).optional(),
 });
 
-/* ── Public Login ── */
-const loginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1),
-});
-
-/* ── Admin Register ── */
-/* Role is NOT accepted from frontend.
-   Backend will force PLATFORM_ADMIN. */
-const adminRegisterSchema = z.object({
-    name: z.string().min(2).max(255),
-
-    email: z.string().email(),
-
-    phone: z
-        .string()
-        .regex(
-            /^[6-9]\d{9}$/,
-            "Must be a valid 10-digit Indian mobile number"
-        )
-        .optional(),
-
-    password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-/* ── Admin Login ── */
-const adminLoginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1),
-});
-
-/* ── Change Password ── */
+const loginSchema = z.object({ email: z.string().trim().email(), password: z.string().min(1) });
+const adminLoginSchema = loginSchema;
 const changePasswordSchema = z.object({
-    oldPassword: z.string().min(1),
-    newPassword: z.string().min(6),
+  oldPassword: z.string().min(1),
+  newPassword: z.string().min(12, "Password must be at least 12 characters"),
+});
+const updateProfileSchema = z.object({
+  name: z.string().trim().min(2).max(255).optional(),
+  email: z.string().trim().email().optional(),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number").optional(),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email().optional(),
+  phone: z.string().trim().optional(),
+  emailOrPhone: z.string().trim().optional(),
+}).refine((data) => data.email || data.phone || data.emailOrPhone, {
+  message: "Either email or phone is required",
 });
 
 module.exports = {
-    registerSchema,
-    loginSchema,
-    adminRegisterSchema,
-    adminLoginSchema,
-    changePasswordSchema,
+  registerSchema,
+  loginSchema,
+  adminLoginSchema,
+  changePasswordSchema,
+  updateProfileSchema,
+  forgotPasswordSchema,
 };

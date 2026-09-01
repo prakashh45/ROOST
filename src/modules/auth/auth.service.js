@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────────────────────────────────
    src/modules/auth/auth.service.js
 
-   register / login / adminRegister / adminLogin /
+   register / login / adminLogin /
    getProfile / changePassword
 
    Supported database roles:
@@ -175,75 +175,6 @@ const login = async ({
    Therefore DO NOT use "ADMIN".
 ───────────────────────────────────────────────────────────────────────── */
 
-const adminRegister = async ({
-    name,
-    email,
-    phone,
-    password,
-}) => {
-    const adminAlreadyExists = await prisma.users.findFirst({
-        where: { role: ADMIN_ROLE },
-        select: { id: true },
-    });
-    if (adminAlreadyExists) {
-        const err = new Error("Platform admin creation is restricted to authenticated platform administration");
-        err.status = 403;
-        err.code = "ADMIN_BOOTSTRAP_COMPLETE";
-        throw err;
-    }
-    const existing = await prisma.users.findUnique({
-        where: {
-            email,
-        },
-    });
-
-    if (existing) {
-        const err = new Error(
-            "Email already registered"
-        );
-
-        err.status = 409;
-        err.code = "EMAIL_EXISTS";
-
-        throw err;
-    }
-
-    const passwordHash = await bcrypt.hash(
-        password,
-        SALT_ROUNDS
-    );
-
-    const admin = await prisma.users.create({
-        data: {
-            name,
-            email,
-            phone: phone || null,
-            password_hash: passwordHash,
-
-            /*
-             * IMPORTANT FIX
-             *
-             * PostgreSQL chk_users_role does NOT allow "ADMIN".
-             * It allows "PLATFORM_ADMIN".
-             */
-            role: ADMIN_ROLE,
-
-            status: "ACTIVE",
-
-            /*
-             * Platform admin is not attached
-             * to a tenant.
-             */
-            tenant_id: null,
-        },
-    });
-
-    return {
-        user: formatUser(admin),
-        token: signToken(admin),
-    };
-};
-
 /* ─────────────────────────────────────────────────────────────────────────
    ADMIN LOGIN
    Only PLATFORM_ADMIN users can login here
@@ -264,7 +195,7 @@ const adminLogin = async ({
      */
     if (
         !user ||
-        user.role !== ADMIN_ROLE ||
+        ![ADMIN_ROLE, "ADMIN"].includes(user.role) ||
         !user.password_hash
     ) {
         const err = new Error(
@@ -408,7 +339,6 @@ const changePassword = async (
 module.exports = {
     register,
     login,
-    adminRegister,
     adminLogin,
     getProfile,
     changePassword,

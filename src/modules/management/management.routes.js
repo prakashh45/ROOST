@@ -1,5 +1,7 @@
 const express = require("express"); const controller = require("./management.controller"); const validate = require("../../middleware/validate"); const { authenticate } = require("../../middleware/auth"); const { requirePermission } = require("../../common/rbac"); const { createUserSchema, userStatusSchema, itemSchema, stockSchema } = require("./management.validation");
-const router = express.Router(); router.use(authenticate);
+const router = express.Router();
+
+router.use(authenticate);
 router.post("/users", requirePermission("users:manage"), validate(createUserSchema), controller.createUser);
 router.get("/users", requirePermission("users:read"), controller.listUsers);
 router.patch("/users/:userId/status", requirePermission("users:manage"), validate(userStatusSchema), controller.updateUserStatus);

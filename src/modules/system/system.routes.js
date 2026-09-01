@@ -1,6 +1,111 @@
-const express = require("express"); const controller = require("./system.controller"); const validate = require("../../middleware/validate"); const { authenticate } = require("../../middleware/auth"); const { requirePermission } = require("../../common/rbac"); const { settingSchema, restoreSchema } = require("./system.validation");
-const router = express.Router(); router.use(authenticate);
-router.get("/access-control", controller.access); router.get("/settings", requirePermission("settings:read"), controller.settings); router.put("/settings", requirePermission("settings:write"), validate(settingSchema), controller.putSetting);
-router.get("/camera", requirePermission("settings:read"), controller.camera); router.put("/camera", requirePermission("settings:write"), validate(settingSchema), controller.putCamera);
-router.get("/backup", requirePermission("settings:read"), controller.backup); router.post("/restore", requirePermission("settings:write"), validate(restoreSchema), controller.restore);
-router.get("/audit-logs", requirePermission("audit:read"), controller.auditLogs); module.exports = router;
+'use strict';
+
+const { Router }            = require('express');
+const { authenticate }      = require('../../middleware/auth');
+const { requirePermission } = require('../../common/rbac');
+const validate              = require('../../middleware/validate');
+
+const {
+  updateSettingsSchema,
+  cameraConfigSchema,
+} = require('./system.validation');
+
+const ctrl = require('./system.controller');
+
+const router = Router();
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/system/access-control
+ * Returns the permission→roles map. Any authenticated user may call this.
+ */
+router.get(
+  '/access-control',
+  authenticate,
+  ctrl.getAccessControl
+);
+
+/**
+ * GET /api/system/settings
+ * Returns all settings grouped by category.
+ */
+router.get(
+  '/settings',
+  authenticate,
+  requirePermission('settings:read'),
+  ctrl.getSettings
+);
+
+/**
+ * PUT /api/system/settings
+ * Bulk-upserts system settings.
+ * Body: { settings: [{ key, value, category? }] }
+ */
+router.put(
+  '/settings',
+  authenticate,
+  requirePermission('settings:write'),
+  validate(updateSettingsSchema),
+  ctrl.updateSettings
+);
+
+/**
+ * GET /api/system/camera
+ * Returns camera configuration.
+ */
+router.get(
+  '/camera',
+  authenticate,
+  requirePermission('settings:read'),
+  ctrl.getCameraConfig
+);
+
+/**
+ * PUT /api/system/camera
+ * Updates camera configuration.
+ * Body: { enabled, streamUrl?, recordingEnabled? }
+ */
+router.put(
+  '/camera',
+  authenticate,
+  requirePermission('settings:write'),
+  validate(cameraConfigSchema),
+  ctrl.updateCameraConfig
+);
+
+/**
+ * GET /api/system/backup
+ * Returns backup configuration and status info.
+ */
+router.get(
+  '/backup',
+  authenticate,
+  requirePermission('settings:read'),
+  ctrl.getBackupInfo
+);
+
+/**
+ * POST /api/system/restore
+ * Initiates a backup restore (manual process).
+ */
+router.post(
+  '/restore',
+  authenticate,
+  requirePermission('settings:write'),
+  ctrl.restoreBackup
+);
+
+/**
+ * GET /api/system/audit-logs
+ * Returns paginated audit logs.
+ * Query: userId, entityType, action, from, to, page, limit
+ */
+router.get(
+  '/audit-logs',
+  authenticate,
+  requirePermission('audit:read'),
+  ctrl.getAuditLogs
+);
+
+module.exports = router;

@@ -1,0 +1,1002 @@
+{
+  "info": {
+    "name": "ROOST Hostel Management API Collection",
+    "description": "Production-ready Postman collection for all ROOST Backend APIs covering Auth, Reception (Guests, Bookings, Beds), Finance (Payments, Invoices, Refunds), Management (Staff, Inventory), Experience (Complaints, Feedback), Reports & BI, and System modules.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "guestId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "propertyId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "roomId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "bedId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "bookingCode",
+      "value": "ROOST-EXAMPLE",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "paymentId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "complaintId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "staffId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication & Profile",
+      "item": [
+        {
+          "name": "1.1 Register Guest / User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahul Sharma\",\n  \"email\": \"rahul.sharma@example.com\",\n  \"phone\": \"9876543210\",\n  \"password\": \"Password1234!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register"
+            }
+          }
+        },
+        {
+          "name": "1.2 Login (Auto-captures Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set(\"token\", res.data.accessToken);",
+                  "    console.log(\"Access token saved:\", res.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@roost.com\",\n  \"password\": \"Password1234!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login"
+            }
+          }
+        },
+        {
+          "name": "1.3 Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set(\"adminToken\", res.data.accessToken);",
+                  "    pm.collectionVariables.set(\"token\", res.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@roost.com\",\n  \"password\": \"Password1234!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/admin/login"
+            }
+          }
+        },
+        {
+          "name": "1.4 Get Profile (GET /auth/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me"
+            }
+          }
+        },
+        {
+          "name": "1.5 Update Profile (PATCH /auth/me)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahul Sharma (Updated)\",\n  \"phone\": \"9876543211\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me"
+            }
+          }
+        },
+        {
+          "name": "1.6 Forgot Password (POST /auth/forgot-password)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahul.sharma@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Reception - Guests",
+      "item": [
+        {
+          "name": "2.1 List Guests (GET /roost/guests)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/guests?q=&status=ACTIVE"
+            }
+          }
+        },
+        {
+          "name": "2.2 Get Guest By ID (GET /roost/guests/:id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/guests/{{guestId}}"
+            }
+          }
+        },
+        {
+          "name": "2.3 Register Guest (POST /roost/guests)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aman Verma\",\n  \"phone\": \"9123456780\",\n  \"email\": \"aman.verma@example.com\",\n  \"gender\": \"MALE\",\n  \"idProofType\": \"AADHAAR\",\n  \"idProofNumber\": \"1234-5678-9012\",\n  \"address\": \"Flat 101, Green Heights\",\n  \"city\": \"Bangalore\",\n  \"state\": \"Karnataka\",\n  \"nationality\": \"Indian\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/guests"
+            }
+          }
+        },
+        {
+          "name": "2.4 Update Guest (PATCH /roost/guests/:id)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"New Flat 202, Indiranagar\",\n  \"city\": \"Bangalore\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/guests/{{guestId}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Reception - Bookings & Beds",
+      "item": [
+        {
+          "name": "3.1 List Bookings (GET /roost/bookings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/bookings?status=CONFIRMED"
+            }
+          }
+        },
+        {
+          "name": "3.2 Create Booking (POST /roost/bookings)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestId\": \"{{guestId}}\",\n  \"propertyId\": \"{{propertyId}}\",\n  \"roomId\": \"{{roomId}}\",\n  \"bedId\": \"{{bedId}}\",\n  \"checkIn\": \"2026-09-05\",\n  \"checkOut\": \"2026-09-10\",\n  \"source\": \"WALK_IN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/bookings"
+            }
+          }
+        },
+        {
+          "name": "3.3 Check-In Guest (PATCH /roost/bookings/:code/check-in)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/bookings/{{bookingCode}}/check-in"
+            }
+          }
+        },
+        {
+          "name": "3.4 Check-Out Guest (PATCH /roost/bookings/:code/check-out)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/bookings/{{bookingCode}}/check-out"
+            }
+          }
+        },
+        {
+          "name": "3.5 Cancel Booking (PATCH /roost/bookings/:code/cancel)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Guest requested early cancellation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/bookings/{{bookingCode}}/cancel"
+            }
+          }
+        },
+        {
+          "name": "3.6 List Beds (GET /roost/beds)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/beds?type=AC&status=AVAILABLE"
+            }
+          }
+        },
+        {
+          "name": "3.7 Beds Availability (GET /roost/beds/availability)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/beds/availability"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Finance & Payments",
+      "item": [
+        {
+          "name": "4.1 List Payments (GET /roost/payments)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/payments"
+            }
+          }
+        },
+        {
+          "name": "4.2 Collect Payment (POST /finance/payments)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"amount\": 5000,\n  \"method\": \"UPI\",\n  \"transactionRef\": \"UPI-TXN-987654\",\n  \"notes\": \"Rent received via GooglePay\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/finance/payments"
+            }
+          }
+        },
+        {
+          "name": "4.3 Get Payment By ID (GET /roost/payments/:id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/payments/{{paymentId}}"
+            }
+          }
+        },
+        {
+          "name": "4.4 List Invoices (GET /roost/invoices)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/invoices"
+            }
+          }
+        },
+        {
+          "name": "4.5 Get Invoice By Booking (GET /roost/invoices/:bookingId)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/invoices/{{bookingId}}"
+            }
+          }
+        },
+        {
+          "name": "4.6 Request Refund (POST /roost/refunds)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"amount\": 1000,\n  \"reason\": \"Early checkout partial balance refund\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/refunds"
+            }
+          }
+        },
+        {
+          "name": "4.7 List Refunds (GET /roost/refunds)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/refunds"
+            }
+          }
+        },
+        {
+          "name": "4.8 Approve Refund (PATCH /roost/refunds/:id/approve)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/refunds/1/approve"
+            }
+          }
+        },
+        {
+          "name": "4.9 Reject Refund (PATCH /roost/refunds/:id/reject)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/refunds/1/reject"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Guest Experience (Complaints & Feedback)",
+      "item": [
+        {
+          "name": "5.1 List Complaints (GET /roost/complaints)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/complaints"
+            }
+          }
+        },
+        {
+          "name": "5.2 Create Complaint (POST /roost/complaints)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"MAINTENANCE\",\n  \"subject\": \"Water leakage in bathroom\",\n  \"description\": \"Tap in Room 204 attached bathroom is leaking continuously.\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/complaints"
+            }
+          }
+        },
+        {
+          "name": "5.3 Update Complaint (PATCH /roost/complaints/:id)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\",\n  \"resolution\": \"Plumber replaced washer and faucet valve.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/complaints/{{complaintId}}"
+            }
+          }
+        },
+        {
+          "name": "5.4 List Feedback (GET /roost/feedback)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/feedback"
+            }
+          }
+        },
+        {
+          "name": "5.5 Submit Feedback (POST /roost/feedback)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"overallRating\": 5,\n  \"cleanlinessRating\": 5,\n  \"serviceRating\": 5,\n  \"valueRating\": 4,\n  \"comment\": \"Super clean rooms, friendly staff, loved the high-speed wifi!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/feedback"
+            }
+          }
+        },
+        {
+          "name": "5.6 Feedback Summary (GET /roost/feedback/summary)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/feedback/summary"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Management & Staff",
+      "item": [
+        {
+          "name": "6.1 List Staff (GET /roost/staff)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/staff"
+            }
+          }
+        },
+        {
+          "name": "6.2 Create Staff (POST /roost/staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Priya Sharma\",\n  \"email\": \"priya.reception@roost.com\",\n  \"phone\": \"9876500002\",\n  \"password\": \"Password1234!\",\n  \"role\": \"RECEPTIONIST\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/staff"
+            }
+          }
+        },
+        {
+          "name": "6.3 Update Staff (PATCH /roost/staff/:id)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Priya Sharma (Senior Receptionist)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/staff/{{staffId}}"
+            }
+          }
+        },
+        {
+          "name": "6.4 Staff Performance (GET /roost/staff/performance)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/staff/performance"
+            }
+          }
+        },
+        {
+          "name": "6.5 List Inventory (GET /roost/inventory)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/inventory"
+            }
+          }
+        },
+        {
+          "name": "6.6 Create Inventory Item (POST /roost/inventory)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"propertyId\": \"{{propertyId}}\",\n  \"name\": \"Pillow Cover Set\",\n  \"category\": \"NON_RECURRING\",\n  \"unit\": \"PIECE\",\n  \"openingStock\": 100,\n  \"minStockLevel\": 20,\n  \"costPerUnit\": 150\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/inventory"
+            }
+          }
+        },
+        {
+          "name": "6.7 Update Inventory (PATCH /roost/inventory/:itemId)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minStock\": 25,\n  \"costPerUnit\": 160\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/inventory/{{itemId}}"
+            }
+          }
+        },
+        {
+          "name": "6.8 Inventory Summary (GET /roost/inventory/summary)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/inventory/summary"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Analytics & BI",
+      "item": [
+        {
+          "name": "7.1 Dashboard (GET /roost/analytics/dashboard)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/analytics/dashboard"
+            }
+          }
+        },
+        {
+          "name": "7.2 Weekly BI (GET /roost/analytics/weekly)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/analytics/weekly"
+            }
+          }
+        },
+        {
+          "name": "7.3 Monthly BI (GET /roost/analytics/monthly)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/analytics/monthly"
+            }
+          }
+        },
+        {
+          "name": "7.4 Aggregate BI (GET /roost/analytics/bi)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/analytics/bi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. System & Settings",
+      "item": [
+        {
+          "name": "8.1 Get Settings (GET /roost/settings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/settings"
+            }
+          }
+        },
+        {
+          "name": "8.2 Update Settings (PATCH /roost/settings)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"propertyName\": \"ROOST Premium Hostel Bangalore\",\n  \"whatsappNumber\": \"+919876543210\",\n  \"taxRate\": \"12\",\n  \"currency\": \"INR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roost/settings"
+            }
+          }
+        },
+        {
+          "name": "8.3 Access Control Permissions (GET /roost/access-control/permissions)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/access-control/permissions"
+            }
+          }
+        },
+        {
+          "name": "8.4 Audit Logs (GET /roost/audit-logs)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roost/audit-logs"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

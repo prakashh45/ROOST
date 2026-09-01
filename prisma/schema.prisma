@@ -249,6 +249,7 @@ model users {
   refunds_approved       refunds[]
   audit_logs             audit_logs[]
   inventory_transactions inventory_transactions[]
+  password_reset_tokens  password_reset_tokens[]
 
   @@index([role], map: "idx_users_role")
   @@index([tenant_id], map: "idx_users_tenant_id")
@@ -264,6 +265,7 @@ model guest_profiles {
   user_id                 BigInt
   id_proof_type           String?   @db.VarChar(50)
   id_proof_number         String?   @db.VarChar(100)
+  id_proof_photo          String?   @db.VarChar(500)
   address                 String?
   city                    String?   @db.VarChar(100)
   state                   String?   @db.VarChar(100)
@@ -460,6 +462,18 @@ model inventory_transactions {
   @@index([item_id], map: "idx_inventory_tx_item")
 }
 
+model cameras {
+  id         BigInt   @id @default(autoincrement())
+  name       String   @unique @db.VarChar(255)
+  location   String   @db.VarChar(255)
+  status     String   @default("ONLINE") @db.VarChar(30)
+  stream_url String?  @db.VarChar(2048)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([status], map: "idx_cameras_status")
+}
+
 model system_settings {
   id            BigInt    @id @default(autoincrement())
   tenant_id     BigInt?
@@ -473,4 +487,16 @@ model system_settings {
 
   @@index([tenant_id], map: "idx_system_settings_tenant")
   @@index([category], map: "idx_system_settings_category")
+}
+
+model password_reset_tokens {
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  token      String   @unique @db.VarChar(255)
+  expires_at DateTime @db.Timestamp(6)
+  used       Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
 }

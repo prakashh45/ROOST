@@ -33,9 +33,11 @@ const authenticate = async (req, res, next) => {
 
         req.user = {
             userId: user.id.toString(),
+            id: user.id.toString(),        // alias for convenience
             email: user.email,
             role: user.role,
             tenantId: user.tenant_id ? user.tenant_id.toString() : null,
+            tenant_id: user.tenant_id ? user.tenant_id.toString() : null,
         };
 
         next();

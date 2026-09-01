@@ -12,9 +12,12 @@ const analyticsRoutes = require("../modules/analytics/analytics.routes");
 const receptionRoutes = require("../modules/reception/reception.routes");
 const financeRoutes = require("../modules/finance/finance.routes");
 const managementRoutes = require("../modules/management/management.routes");
+const roostUsersRoutes = require("../modules/management/roost-users.routes");
 const experienceRoutes = require("../modules/experience/experience.routes");
 const reportsRoutes = require("../modules/reports/reports.routes");
 const systemRoutes = require("../modules/system/system.routes");
+const cameraRoutes = require("../modules/camera/camera.routes");
+const roostRoutes  = require("../modules/roost/roost.routes");
 const router = express.Router();
 
 
@@ -27,8 +30,12 @@ router.use("/analytics", analyticsRoutes);
 router.use("/reception", receptionRoutes);
 router.use("/finance", financeRoutes);
 router.use("/management", managementRoutes);
+router.use("/roost/users", roostUsersRoutes);
 router.use("/experience", experienceRoutes);
 router.use("/reports", reportsRoutes);
+router.use("/roost/reports", reportsRoutes);
 router.use("/system", systemRoutes);
+router.use("/roost/cameras", cameraRoutes);
+router.use("/roost", roostRoutes);
 
 module.exports = router;

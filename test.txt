@@ -1,0 +1,688 @@
+const fs = require('fs');
+
+const collection = {
+  info: {
+    name: 'ROOST Hostel Management API Collection',
+    description: 'Production-ready Postman collection for all ROOST Backend APIs covering Auth, Reception (Guests, Bookings, Beds), Finance (Payments, Invoices, Refunds), Management (Staff, Inventory), Experience (Complaints, Feedback), Reports & BI, and System modules.',
+    schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
+  },
+  variable: [
+    { key: 'baseUrl', value: 'http://localhost:5000/api/v1', type: 'string' },
+    { key: 'token', value: '', type: 'string' },
+    { key: 'adminToken', value: '', type: 'string' },
+    { key: 'guestId', value: '1', type: 'string' },
+    { key: 'propertyId', value: '1', type: 'string' },
+    { key: 'roomId', value: '1', type: 'string' },
+    { key: 'bedId', value: '1', type: 'string' },
+    { key: 'bookingCode', value: 'ROOST-EXAMPLE', type: 'string' },
+    { key: 'bookingId', value: '1', type: 'string' },
+    { key: 'paymentId', value: '1', type: 'string' },
+    { key: 'complaintId', value: '1', type: 'string' },
+    { key: 'itemId', value: '1', type: 'string' },
+    { key: 'staffId', value: '1', type: 'string' }
+  ],
+  item: [
+    {
+      name: '1. Authentication & Profile',
+      item: [
+        {
+          name: '1.1 Register Guest / User',
+          request: {
+            method: 'POST',
+            header: [{ key: 'Content-Type', value: 'application/json' }],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                name: 'Rahul Sharma',
+                email: 'rahul.sharma@example.com',
+                phone: '9876543210',
+                password: 'Password1234!'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/auth/register' }
+          }
+        },
+        {
+          name: '1.2 Login (Auto-captures Token)',
+          event: [{
+            listen: 'test',
+            script: {
+              exec: [
+                'const res = pm.response.json();',
+                'if (res.data && res.data.accessToken) {',
+                '    pm.collectionVariables.set("token", res.data.accessToken);',
+                '    console.log("Access token saved:", res.data.accessToken);',
+                '}'
+              ],
+              type: 'text/javascript'
+            }
+          }],
+          request: {
+            method: 'POST',
+            header: [{ key: 'Content-Type', value: 'application/json' }],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                email: 'admin@roost.com',
+                password: 'Password1234!'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/auth/login' }
+          }
+        },
+        {
+          name: '1.3 Admin Login',
+          event: [{
+            listen: 'test',
+            script: {
+              exec: [
+                'const res = pm.response.json();',
+                'if (res.data && res.data.accessToken) {',
+                '    pm.collectionVariables.set("adminToken", res.data.accessToken);',
+                '    pm.collectionVariables.set("token", res.data.accessToken);',
+                '}'
+              ],
+              type: 'text/javascript'
+            }
+          }],
+          request: {
+            method: 'POST',
+            header: [{ key: 'Content-Type', value: 'application/json' }],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                email: 'admin@roost.com',
+                password: 'Password1234!'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/auth/admin/login' }
+          }
+        },
+        {
+          name: '1.4 Get Profile (GET /auth/me)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/auth/me' }
+          }
+        },
+        {
+          name: '1.5 Update Profile (PATCH /auth/me)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                name: 'Rahul Sharma (Updated)',
+                phone: '9876543211'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/auth/me' }
+          }
+        },
+        {
+          name: '1.6 Forgot Password (POST /auth/forgot-password)',
+          request: {
+            method: 'POST',
+            header: [{ key: 'Content-Type', value: 'application/json' }],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                email: 'rahul.sharma@example.com'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/auth/forgot-password' }
+          }
+        }
+      ]
+    },
+    {
+      name: '2. Reception - Guests',
+      item: [
+        {
+          name: '2.1 List Guests (GET /roost/guests)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/guests?q=&status=ACTIVE' }
+          }
+        },
+        {
+          name: '2.2 Get Guest By ID (GET /roost/guests/:id)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/guests/{{guestId}}' }
+          }
+        },
+        {
+          name: '2.3 Register Guest (POST /roost/guests)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                name: 'Aman Verma',
+                phone: '9123456780',
+                email: 'aman.verma@example.com',
+                gender: 'MALE',
+                idProofType: 'AADHAAR',
+                idProofNumber: '1234-5678-9012',
+                address: 'Flat 101, Green Heights',
+                city: 'Bangalore',
+                state: 'Karnataka',
+                nationality: 'Indian'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/guests' }
+          }
+        },
+        {
+          name: '2.4 Update Guest (PATCH /roost/guests/:id)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                address: 'New Flat 202, Indiranagar',
+                city: 'Bangalore'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/guests/{{guestId}}' }
+          }
+        }
+      ]
+    },
+    {
+      name: '3. Reception - Bookings & Beds',
+      item: [
+        {
+          name: '3.1 List Bookings (GET /roost/bookings)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/bookings?status=CONFIRMED' }
+          }
+        },
+        {
+          name: '3.2 Create Booking (POST /roost/bookings)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                guestId: '{{guestId}}',
+                propertyId: '{{propertyId}}',
+                roomId: '{{roomId}}',
+                bedId: '{{bedId}}',
+                checkIn: '2026-09-05',
+                checkOut: '2026-09-10',
+                source: 'WALK_IN'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/bookings' }
+          }
+        },
+        {
+          name: '3.3 Check-In Guest (PATCH /roost/bookings/:code/check-in)',
+          request: {
+            method: 'PATCH',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/bookings/{{bookingCode}}/check-in' }
+          }
+        },
+        {
+          name: '3.4 Check-Out Guest (PATCH /roost/bookings/:code/check-out)',
+          request: {
+            method: 'PATCH',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/bookings/{{bookingCode}}/check-out' }
+          }
+        },
+        {
+          name: '3.5 Cancel Booking (PATCH /roost/bookings/:code/cancel)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                reason: 'Guest requested early cancellation'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/bookings/{{bookingCode}}/cancel' }
+          }
+        },
+        {
+          name: '3.6 List Beds (GET /roost/beds)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/beds?type=AC&status=AVAILABLE' }
+          }
+        },
+        {
+          name: '3.7 Beds Availability (GET /roost/beds/availability)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/beds/availability' }
+          }
+        }
+      ]
+    },
+    {
+      name: '4. Finance & Payments',
+      item: [
+        {
+          name: '4.1 List Payments (GET /roost/payments)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/payments' }
+          }
+        },
+        {
+          name: '4.2 Collect Payment (POST /finance/payments)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                bookingId: '{{bookingId}}',
+                amount: 5000,
+                method: 'UPI',
+                transactionRef: 'UPI-TXN-987654',
+                notes: 'Rent received via GooglePay'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/finance/payments' }
+          }
+        },
+        {
+          name: '4.3 Get Payment By ID (GET /roost/payments/:id)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/payments/{{paymentId}}' }
+          }
+        },
+        {
+          name: '4.4 List Invoices (GET /roost/invoices)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/invoices' }
+          }
+        },
+        {
+          name: '4.5 Get Invoice By Booking (GET /roost/invoices/:bookingId)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/invoices/{{bookingId}}' }
+          }
+        },
+        {
+          name: '4.6 Request Refund (POST /roost/refunds)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                paymentId: '{{paymentId}}',
+                amount: 1000,
+                reason: 'Early checkout partial balance refund'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/refunds' }
+          }
+        },
+        {
+          name: '4.7 List Refunds (GET /roost/refunds)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/refunds' }
+          }
+        },
+        {
+          name: '4.8 Approve Refund (PATCH /roost/refunds/:id/approve)',
+          request: {
+            method: 'PATCH',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/refunds/1/approve' }
+          }
+        },
+        {
+          name: '4.9 Reject Refund (PATCH /roost/refunds/:id/reject)',
+          request: {
+            method: 'PATCH',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/refunds/1/reject' }
+          }
+        }
+      ]
+    },
+    {
+      name: '5. Guest Experience (Complaints & Feedback)',
+      item: [
+        {
+          name: '5.1 List Complaints (GET /roost/complaints)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/complaints' }
+          }
+        },
+        {
+          name: '5.2 Create Complaint (POST /roost/complaints)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                category: 'MAINTENANCE',
+                subject: 'Water leakage in bathroom',
+                description: 'Tap in Room 204 attached bathroom is leaking continuously.',
+                priority: 'HIGH'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/complaints' }
+          }
+        },
+        {
+          name: '5.3 Update Complaint (PATCH /roost/complaints/:id)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                status: 'RESOLVED',
+                resolution: 'Plumber replaced washer and faucet valve.'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/complaints/{{complaintId}}' }
+          }
+        },
+        {
+          name: '5.4 List Feedback (GET /roost/feedback)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/feedback' }
+          }
+        },
+        {
+          name: '5.5 Submit Feedback (POST /roost/feedback)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                overallRating: 5,
+                cleanlinessRating: 5,
+                serviceRating: 5,
+                valueRating: 4,
+                comment: 'Super clean rooms, friendly staff, loved the high-speed wifi!'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/feedback' }
+          }
+        },
+        {
+          name: '5.6 Feedback Summary (GET /roost/feedback/summary)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/feedback/summary' }
+          }
+        }
+      ]
+    },
+    {
+      name: '6. Management & Staff',
+      item: [
+        {
+          name: '6.1 List Staff (GET /roost/staff)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/staff' }
+          }
+        },
+        {
+          name: '6.2 Create Staff (POST /roost/staff)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                name: 'Priya Sharma',
+                email: 'priya.reception@roost.com',
+                phone: '9876500002',
+                password: 'Password1234!',
+                role: 'RECEPTIONIST'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/staff' }
+          }
+        },
+        {
+          name: '6.3 Update Staff (PATCH /roost/staff/:id)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                name: 'Priya Sharma (Senior Receptionist)'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/staff/{{staffId}}' }
+          }
+        },
+        {
+          name: '6.4 Staff Performance (GET /roost/staff/performance)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/staff/performance' }
+          }
+        },
+        {
+          name: '6.5 List Inventory (GET /roost/inventory)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/inventory' }
+          }
+        },
+        {
+          name: '6.6 Create Inventory Item (POST /roost/inventory)',
+          request: {
+            method: 'POST',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                propertyId: '{{propertyId}}',
+                name: 'Pillow Cover Set',
+                category: 'NON_RECURRING',
+                unit: 'PIECE',
+                openingStock: 100,
+                minStockLevel: 20,
+                costPerUnit: 150
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/inventory' }
+          }
+        },
+        {
+          name: '6.7 Update Inventory (PATCH /roost/inventory/:itemId)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                minStock: 25,
+                costPerUnit: 160
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/inventory/{{itemId}}' }
+          }
+        },
+        {
+          name: '6.8 Inventory Summary (GET /roost/inventory/summary)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/inventory/summary' }
+          }
+        }
+      ]
+    },
+    {
+      name: '7. Analytics & BI',
+      item: [
+        {
+          name: '7.1 Dashboard (GET /roost/analytics/dashboard)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/analytics/dashboard' }
+          }
+        },
+        {
+          name: '7.2 Weekly BI (GET /roost/analytics/weekly)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/analytics/weekly' }
+          }
+        },
+        {
+          name: '7.3 Monthly BI (GET /roost/analytics/monthly)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/analytics/monthly' }
+          }
+        },
+        {
+          name: '7.4 Aggregate BI (GET /roost/analytics/bi)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/analytics/bi' }
+          }
+        }
+      ]
+    },
+    {
+      name: '8. System & Settings',
+      item: [
+        {
+          name: '8.1 Get Settings (GET /roost/settings)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/settings' }
+          }
+        },
+        {
+          name: '8.2 Update Settings (PATCH /roost/settings)',
+          request: {
+            method: 'PATCH',
+            header: [
+              { key: 'Authorization', value: 'Bearer {{token}}' },
+              { key: 'Content-Type', value: 'application/json' }
+            ],
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({
+                propertyName: 'ROOST Premium Hostel Bangalore',
+                whatsappNumber: '+919876543210',
+                taxRate: '12',
+                currency: 'INR'
+              }, null, 2)
+            },
+            url: { raw: '{{baseUrl}}/roost/settings' }
+          }
+        },
+        {
+          name: '8.3 Access Control Permissions (GET /roost/access-control/permissions)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/access-control/permissions' }
+          }
+        },
+        {
+          name: '8.4 Audit Logs (GET /roost/audit-logs)',
+          request: {
+            method: 'GET',
+            header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+            url: { raw: '{{baseUrl}}/roost/audit-logs' }
+          }
+        }
+      ]
+    }
+  ]
+};
+
+fs.writeFileSync('postman_collection.json', JSON.stringify(collection, null, 2), 'utf8');
+console.log('SUCCESS: postman_collection.json written successfully!');

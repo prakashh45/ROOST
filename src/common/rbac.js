@@ -1,22 +1,25 @@
 const ROLE_PERMISSIONS = {
+  // ADMIN is kept as a compatibility alias for deployments that predate the
+  // PLATFORM_ADMIN rename. New accounts must use PLATFORM_ADMIN.
   PLATFORM_ADMIN: ["*"],
+  ADMIN: ["*"],
   MANAGER: [
     "guests:read", "guests:write", "reception:operate", "finance:read", "finance:collect", "finance:refund:approve",
     "users:read", "users:manage", "inventory:read", "inventory:manage", "experience:read", "experience:manage",
-    "reports:read", "settings:read", "settings:write", "audit:read",
+    "experience:write", "reports:read",
   ],
-  RECEPTIONIST: ["guests:read", "guests:write", "reception:operate", "finance:read", "finance:collect", "experience:write"],
+  RECEPTIONIST: ["guests:read", "guests:write", "reception:operate", "finance:read", "finance:collect", "experience:read", "experience:write"],
   OWNER: [
     "guests:read", "guests:write", "reception:operate", "finance:read", "finance:collect", "finance:refund:approve",
     "users:read", "users:manage", "inventory:read", "inventory:manage", "experience:read", "experience:manage",
     "reports:read", "settings:read", "settings:write", "audit:read",
   ],
-  STAFF: ["guests:read", "guests:write", "reception:operate", "finance:read", "finance:collect", "experience:write"],
-  GUEST: ["experience:write"],
+  STAFF: ["guests:read", "guests:write", "reception:operate", "finance:read", "finance:collect", "experience:read", "experience:write"],
+  GUEST: ["finance:read", "experience:read", "experience:write"],
 };
 
 const hasPermission = (role, permission) => {
-  const permissions = ROLE_PERMISSIONS[role] || [];
+  const permissions = ROLE_PERMISSIONS[role === "ADMIN" ? "PLATFORM_ADMIN" : role] || [];
   return permissions.includes("*") || permissions.includes(permission);
 };
 

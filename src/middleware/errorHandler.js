@@ -2,8 +2,6 @@
    src/middleware/errorHandler.js
    Central error handler — never leaks internals in production
 ───────────────────────────────────────────────────────────────────────── */
-const isProd = process.env.NODE_ENV === "production";
-
 const errorHandler = (err, req, res, next) => {
     // Prisma unique-constraint / known-request errors
     if (err.code === "P2002") {
@@ -23,16 +21,14 @@ const errorHandler = (err, req, res, next) => {
 
     const status = err.status || 500;
     const code   = err.code   || "INTERNAL_ERROR";
-    const message =
-        status < 500 || !isProd
-            ? err.message
-            : "An unexpected error occurred. Please try again.";
+    const message = status < 500
+        ? err.message
+        : "An unexpected error occurred. Please try again.";
 
     return res.status(status).json({
         success: false,
         code,
         message,
-        ...(isProd ? {} : { stack: err.stack }),
     });
 };
 
