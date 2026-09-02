@@ -2,7 +2,11 @@
    src/middleware/errorHandler.js
    Central error handler — never leaks internals in production
 ───────────────────────────────────────────────────────────────────────── */
+
+
 const errorHandler = (err, req, res, next) => {
+    console.error("🔥 ERROR:", err);
+    console.error("🔥 STACK:", err.stack);
     // Prisma unique-constraint / known-request errors
     if (err.code === "P2002") {
         return res.status(409).json({
